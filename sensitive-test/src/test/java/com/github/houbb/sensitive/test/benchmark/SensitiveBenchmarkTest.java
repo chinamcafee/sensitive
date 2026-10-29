@@ -1,6 +1,6 @@
 package com.github.houbb.sensitive.test.benchmark;
 
-import com.alibaba.fastjson2.JSON;
+import com.github.houbb.sensitive.core.support.InnerJsonUtil;
 import com.github.houbb.sensitive.core.api.SensitiveUtil;
 import com.github.houbb.sensitive.core.util.strategy.SensitiveStrategyUtil;
 import com.github.houbb.sensitive.test.core.DataPrepareTest;
@@ -19,7 +19,7 @@ public class SensitiveBenchmarkTest {
     private static final int COUNT = 1000000;
 
     /**
-     * fast json 304ms
+     * Jackson serialization benchmark
      */
     @Test
     public void toJsonTest() {
@@ -27,7 +27,7 @@ public class SensitiveBenchmarkTest {
 
         long startTime = System.currentTimeMillis();
         for(int i = 0; i < COUNT; i++) {
-            String json = JSON.toJSONString(user);
+            String json = InnerJsonUtil.toJson(user);
         }
         long endTime = System.currentTimeMillis();
 

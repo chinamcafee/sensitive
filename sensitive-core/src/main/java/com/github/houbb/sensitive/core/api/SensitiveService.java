@@ -1,7 +1,5 @@
 package com.github.houbb.sensitive.core.api;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.filter.ContextValueFilter;
 import com.github.houbb.heaven.annotation.ThreadSafe;
 import com.github.houbb.heaven.support.cache.impl.ClassFieldListCache;
 import com.github.houbb.heaven.util.lang.ObjectUtil;
@@ -16,7 +14,6 @@ import com.github.houbb.sensitive.api.impl.SensitiveStrategyBuiltIn;
 import com.github.houbb.sensitive.core.api.context.SensitiveContext;
 import com.github.houbb.sensitive.core.exception.SensitiveRuntimeException;
 import com.github.houbb.sensitive.core.support.InnerJsonUtil;
-import com.github.houbb.sensitive.core.support.filter.DefaultContextValueFilter;
 import com.github.houbb.sensitive.core.util.entry.SensitiveEntryUtil;
 import com.github.houbb.sensitive.core.util.strategy.SensitiveStrategyBuiltInUtil;
 
@@ -45,6 +42,11 @@ public class SensitiveService<T> implements ISensitive<T> {
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public T desCopy(T object, final ISensitiveConfig config) {
+        return doDesCopy(object, config, false);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private T doDesCopy(T object, final ISensitiveConfig config, final boolean maskMapEntries) {
         if (ObjectUtil.isNull(object)) {
             return null;
         }
@@ -60,20 +62,15 @@ public class SensitiveService<T> implements ISensitive<T> {
         //3. 处理
         context.setSensitiveConfig(config);
         Set<Object> visited = Collections.newSetFromMap(new IdentityHashMap<Object, Boolean>());
-        handleClassField(context, copyObject, clazz, visited);
+        handleClassField(context, copyObject, clazz, visited, maskMapEntries);
         return copyObject;
     }
-
     @Override
     public String desJson(final T object, final ISensitiveConfig config) {
         if (ObjectUtil.isNull(object)) {
-            return JSON.toJSONString(object);
+            return InnerJsonUtil.toJson(null);
         }
-
-        final SensitiveContext context = SensitiveContext.newInstance();
-        context.setSensitiveConfig(config);
-        ContextValueFilter filter = new DefaultContextValueFilter(context);
-        return InnerJsonUtil.toJson(object, filter);
+        return InnerJsonUtil.toJson(doDesCopy(object, config, true));
     }
 
     /**
@@ -87,10 +84,16 @@ public class SensitiveService<T> implements ISensitive<T> {
     private void handleClassField(final SensitiveContext context,
                                   final Object copyObject,
                                   final Class clazz,
-                                  final Set<Object> visited) {
+                                  final Set<Object> visited,
+                                  final boolean maskMapEntries) {
         if (ObjectUtil.isNull(copyObject)
                 || ObjectUtil.isNull(clazz)
                 || !visited.add(copyObject)) {
+            return;
+        }
+
+        // JDK 9+ 强封装不允许反射 java.lang.String 等内部字段，基础类型/JDK 类型无需继续遍历。
+        if (ClassTypeUtil.isJdk(clazz) || ClassTypeUtil.isBase(clazz) || clazz.isEnum()) {
             return;
         }
 
@@ -111,7 +114,7 @@ public class SensitiveService<T> implements ISensitive<T> {
                         // 为普通 javabean 对象
                         final Object fieldNewObject = field.get(copyObject);
                         if (ObjectUtil.isNotNull(fieldNewObject)) {
-                            handleClassField(context, fieldNewObject, fieldNewObject.getClass(), visited);
+                            handleClassField(context, fieldNewObject, fieldNewObject.getClass(), visited, maskMapEntries);
                         }
                     } else if (ClassTypeUtil.isArray(fieldTypeClass)) {
                         // 为数组类型
@@ -126,7 +129,7 @@ public class SensitiveService<T> implements ISensitive<T> {
 
                                 Class entryClass = entry.getClass();
                                 if (needHandleEntryType(entryClass)) {
-                                    handleClassField(context, entry, entryClass, visited);
+                                    handleClassField(context, entry, entryClass, visited, maskMapEntries);
                                 } else {
                                     Object result = handleSensitiveEntry(context, entry, field);
                                     Array.set(array, i, result);
@@ -146,7 +149,7 @@ public class SensitiveService<T> implements ISensitive<T> {
 
                                 Class entryClass = entry.getClass();
                                 if (needHandleEntryType(entryClass)) {
-                                    handleClassField(context, entry, entryClass, visited);
+                                    handleClassField(context, entry, entryClass, visited, maskMapEntries);
                                     newResultList.add(entry);
                                 } else {
                                     newResultList.add(handleSensitiveEntry(context, entry, field));
@@ -157,11 +160,19 @@ public class SensitiveService<T> implements ISensitive<T> {
                             entryCollection.clear();
                             entryCollection.addAll(newResultList);
                         }
+                    } else if (maskMapEntries && ClassTypeUtil.isMap(fieldTypeClass)) {
+                        // JSON 输出时递归脱敏 Map 的 JavaBean 值；desCopy 保持原有不处理 Map 的语义。
+                        java.util.Map<Object, Object> entryMap =
+                                (java.util.Map<Object, Object>) field.get(copyObject);
+                        if (ObjectUtil.isNotNull(entryMap)) {
+                            for (Object value : entryMap.values()) {
+                                if (ObjectUtil.isNotNull(value) && needHandleEntryType(value.getClass())) {
+                                    handleClassField(context, value, value.getClass(), visited, maskMapEntries);
+                                }
+                            }
+                        }
                     } else {
-                        // 1. 常见的基本类型，不做处理
-                        // 2. 如果为 map，暂时不支持处理。后期可以考虑支持 value 的脱敏，或者 key 的脱敏
-                        // 3. 其他
-                        // 处理单个字段脱敏信息
+                        // 常见基本类型或其他类型，按单字段策略处理。
                         handleSensitive(context, copyObject, field);
                     }
                 } else {

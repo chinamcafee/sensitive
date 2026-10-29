@@ -5,7 +5,7 @@
     <parent>
         <artifactId>sensitive</artifactId>
         <groupId>com.github.houbb</groupId>
-        <version>1.9.1</version>
+        <version>1.9.1-linku</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -37,8 +37,8 @@
         </dependency>
 
         <dependency>
-            <groupId>com.alibaba.fastjson2</groupId>
-            <artifactId>fastjson2</artifactId>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
         </dependency>
 
         <dependency>

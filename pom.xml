@@ -7,8 +7,9 @@
     <groupId>com.github.houbb</groupId>
     <artifactId>sensitive</artifactId>
     <packaging>pom</packaging>
-    <version>1.9.1</version>
+    <version>1.9.1-linku</version>
     <modules>
+        <module>chars-scan</module>
         <module>sensitive-annotation</module>
         <module>sensitive-api</module>
         <module>sensitive-core</module>
@@ -20,9 +21,8 @@
 
     <properties>
         <!--============================== All Plugins START ==============================-->
-        <plugin.compiler.version>3.2</plugin.compiler.version>
-        <plugin.compiler.version>3.2</plugin.compiler.version>
-        <plugin.surefire.version>2.18.1</plugin.surefire.version>
+        <plugin.compiler.version>3.14.0</plugin.compiler.version>
+        <plugin.surefire.version>3.5.6</plugin.surefire.version>
         <plugin.surefire.skip-it>false</plugin.surefire.skip-it>
         <plugin.surefire.ignore-failure>false</plugin.surefire.ignore-failure>
 
@@ -35,18 +35,18 @@
 
         <!--============================== MAIN ==============================-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.compiler.level>8</project.compiler.level>
+        <project.compiler.level>25</project.compiler.level>
 
         <!--============================== INTER ==============================-->
         <heaven.version>0.4.0</heaven.version>
-        <fastjson2.version>2.0.61</fastjson2.version>
+        <jackson.version>3.1.7</jackson.version>
         <hash.version>0.0.7</hash.version>
-        <chars-scan.version>1.30.0</chars-scan.version>
+        <chars-scan.version>${project.version}</chars-scan.version>
 
         <!--============================== OTHER ==============================-->
         <junit.version>4.13.1</junit.version>
-        <log4j2.version>2.17.1</log4j2.version>
-        <logback.version>1.2.3</logback.version>
+        <log4j2.version>2.25.5</log4j2.version>
+        <logback.version>1.5.38</logback.version>
     </properties>
 
     <dependencyManagement>
@@ -114,9 +114,9 @@
             </dependency>
 
             <dependency>
-                <groupId>com.alibaba.fastjson2</groupId>
-                <artifactId>fastjson2</artifactId>
-                <version>${fastjson2.version}</version>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
             </dependency>
 
             <dependency>
@@ -150,12 +150,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${plugin.compiler.version}</version>
                 <configuration>
-                    <source>${project.compiler.level}</source>
-                    <target>${project.compiler.level}</target>
+                    <release>${project.compiler.level}</release>
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <compilerArgument>-proc:none</compilerArgument>
-                    <executable>D:\tools\jdk\jdk1.8.0_192\bin\javac</executable>
-                    <fork>true</fork>
                 </configuration>
             </plugin>
 
@@ -163,7 +160,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
+                <version>${plugin.surefire.version}</version>
             </plugin>
 
             <!-- Javadoc -->
