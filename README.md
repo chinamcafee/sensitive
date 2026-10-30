@@ -677,7 +677,7 @@ Assert.assertEquals(originalStr, userCollection.toString());
 
 ```java
 SensitiveBs.newInstance()
-.deepCopy(FastJson2DeepCopy.getInstance())
+.deepCopy(Json2DeepCopy.getInstance())
 .hash(Hashes.empty())
 ```
 
@@ -808,7 +808,7 @@ System.out.println(configInfo);
 
 ```java
 SensitiveBs.newInstance()
-                .deepCopy(FastJson2DeepCopy.getInstance())
+                .deepCopy(Json2DeepCopy.getInstance())
                 .desJson(user);
 ```
 
@@ -819,13 +819,13 @@ deepCopy 用于指定深度复制的具体实现，支持用户自定义。
 ### 循环引用检测开关
 
 循环引用检测默认关闭，因此 `SensitiveUtil.desCopy(...)` 和
-`FastJson2DeepCopy.getInstance()` 保持原有性能路径，不会扫描对象图。
+`Json2DeepCopy.getInstance()` 保持原有性能路径，不会扫描对象图。
 
 对象中存在循环引用时，可以显式开启：
 
 ```java
 SensitiveBs.newInstance()
-        .deepCopy(FastJson2DeepCopy.getInstance(true))
+        .deepCopy(Json2DeepCopy.getInstance(true))
         .desCopy(user);
 ```
 

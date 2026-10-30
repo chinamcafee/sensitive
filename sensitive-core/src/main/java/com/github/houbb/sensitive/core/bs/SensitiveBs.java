@@ -10,7 +10,7 @@ import com.github.houbb.sensitive.api.ISensitiveConfig;
 import com.github.houbb.sensitive.core.api.SensitiveService;
 import com.github.houbb.sensitive.core.support.config.DefaultSensitiveConfig;
 import com.github.houbb.sensitive.core.support.config.SensitiveConfig;
-import com.github.houbb.sensitive.core.support.deepcopy.FastJson2DeepCopy;
+import com.github.houbb.sensitive.core.support.deepcopy.Json2DeepCopy;
 
 /**
  * 脱敏引导类
@@ -25,7 +25,7 @@ public final class SensitiveBs {
      * 深度拷贝
      * @since 0.0.13
      */
-    private IDeepCopy deepCopy = FastJson2DeepCopy.getInstance();
+    private IDeepCopy deepCopy = Json2DeepCopy.getInstance();
 
     /**
      * 脱敏实现

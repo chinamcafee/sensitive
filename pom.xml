@@ -7,7 +7,7 @@
     <groupId>com.github.houbb</groupId>
     <artifactId>sensitive</artifactId>
     <packaging>pom</packaging>
-    <version>1.9.1-linku</version>
+    <version>1.9.1-jackson</version>
     <modules>
         <module>chars-scan</module>
         <module>sensitive-annotation</module>
